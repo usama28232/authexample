@@ -111,6 +111,14 @@ curl --request DELETE \
   --cookie sessionID=1234
 ```
 
+## Unrestricted Endpoint
+
+```
+curl --request GET \
+  --url http://localhost:3000/hello \
+  --cookie sessionID=1234
+```
+
 <br />
 
 ### Feel free to edit/expand/explore this repository
