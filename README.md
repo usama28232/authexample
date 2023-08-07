@@ -30,8 +30,8 @@ CREATE TABLE users (
     last_login TIMESTAMP 
 );
 ```
-<hr />
-Application database lives in a docker container, you can ignore below commands if you are running it locally *- make sure you run init.sql & seed.sql*
+Application database lives in a docker container, you can ignore below commands if you are running it locally
+*- make sure you run init.sql & seed.sql*
 
 To build the docker image:
 
@@ -83,7 +83,7 @@ Get User by username
 
 ## Post Request
 
-Add user
+Add New User
 
 ```
 curl --request POST \
