@@ -51,16 +51,16 @@ func authMiddleware(next http.Handler) http.Handler {
 					if authErr == nil {
 						next.ServeHTTP(w, r)
 					} else {
-						http.Error(w, "Unauthorized", http.StatusUnauthorized)
+						http.Error(w, authErr.Error(), http.StatusUnauthorized)
 						return
 					}
 				} else {
-					http.Error(w, "Unauthorized", http.StatusUnauthorized)
+					http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 					return
 				}
 			} else {
 				// Authentication header is missing or invalid
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				http.Error(w, "unable to parse Auth Header", http.StatusUnauthorized)
 			}
 		}
 

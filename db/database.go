@@ -9,26 +9,29 @@ import (
 
 var db *sql.DB = nil
 
-func init_connection() {
+func init_connection() error {
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
 	var err error
 	// open database
 	db, err = sql.Open("postgres", psqlconn)
 	checkError(err)
 
+	return err
+
 	// close database
 	// defer db.Close()
 
 	// check db
-	err = db.Ping()
-	checkError(err)
+	// err = db.Ping()
+	// checkError(err)
 }
 
-func getConnection() *sql.DB {
+func getConnection() (*sql.DB, error) {
+	var error error = nil
 	if db == nil {
-		init_connection()
+		error = init_connection()
 	}
-	return db
+	return db, error
 }
 
 func checkError(err error) {
@@ -38,26 +41,32 @@ func checkError(err error) {
 }
 
 func Execute(query string, args ...any) error {
-	getConnection()
-	var err error
-	if len(args) > 0 {
-		_, err = db.Exec(query, args...)
+	conn, connErr := getConnection()
+	if connErr == nil {
+		var err error
+		if len(args) > 0 {
+			_, err = conn.Exec(query, args...)
 
-	} else {
-		_, err = db.Query(query)
+		} else {
+			_, err = conn.Exec(query)
+		}
+		return err
 	}
-	return err
+	return connErr
 }
 
 func Query(query string, args ...any) (*([][]any), error) {
-	getConnection()
+	conn, connErr := getConnection()
+	if connErr != nil {
+		return nil, connErr
+	}
 	var rows *sql.Rows
 	var err error
 	if len(args) > 0 {
-		rows, err = db.Query(query, args...)
+		rows, err = conn.Query(query, args...)
 
 	} else {
-		rows, err = db.Query(query)
+		rows, err = conn.Query(query)
 	}
 	if err == nil {
 		defer rows.Close()

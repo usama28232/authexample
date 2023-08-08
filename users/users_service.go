@@ -84,6 +84,8 @@ func AuthenticateUser(username, input string) error {
 		compErr := shared.ComparePassword(user.PASSWORD, input)
 		if compErr == nil {
 			return compErr
+		} else {
+			err = errors.New("username or password invalid")
 		}
 	}
 	return err
