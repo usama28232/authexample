@@ -13,27 +13,31 @@ var (
 	mutex sync.Mutex
 )
 
-func init_connection() error {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
+func Init() error {
+	psqlconn := fmt.Sprintf("Database host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
+	fmt.Println(psqlconn)
 	var err error
 	// open database
 	if db != nil {
 		return nil
 	}
 	mutex.Lock()
-	db, err = sql.Open("postgres", psqlconn)
 	defer mutex.Unlock()
+	db, err = sql.Open("postgres", psqlconn)
 	checkError(err)
 
 	return err
 }
 
-func getConnection() (*sql.DB, error) {
-	var error error = nil
-	if db == nil {
-		error = init_connection()
+func Close() error {
+	if db != nil {
+		return db.Close()
 	}
-	return db, error
+	return nil
+}
+
+func getConnection() (*sql.DB, error) {
+	return db, nil
 }
 
 func checkError(err error) {
@@ -45,7 +49,6 @@ func checkError(err error) {
 func Execute(query string, args ...any) error {
 	conn, connErr := getConnection()
 	if connErr == nil {
-		defer conn.Close()
 		var err error
 		if len(args) > 0 {
 			_, err = conn.Exec(query, args...)
@@ -63,7 +66,6 @@ func Query(query string, args ...any) (*([][]any), error) {
 	if connErr != nil {
 		return nil, connErr
 	}
-	defer conn.Close()
 	var rows *sql.Rows
 	var err error
 	if len(args) > 0 {
@@ -74,7 +76,6 @@ func Query(query string, args ...any) (*([][]any), error) {
 	}
 	if err == nil {
 		defer rows.Close()
-
 		cols, _ := rows.Columns()
 		data := [][]any{}
 		for rows.Next() {
