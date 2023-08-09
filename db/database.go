@@ -3,27 +3,29 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"sync"
 
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB = nil
+var (
+	db    *sql.DB = nil
+	mutex sync.Mutex
+)
 
 func init_connection() error {
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
 	var err error
 	// open database
+	if db != nil {
+		return nil
+	}
+	mutex.Lock()
 	db, err = sql.Open("postgres", psqlconn)
+	defer mutex.Unlock()
 	checkError(err)
 
 	return err
-
-	// close database
-	// defer db.Close()
-
-	// check db
-	// err = db.Ping()
-	// checkError(err)
 }
 
 func getConnection() (*sql.DB, error) {
@@ -43,6 +45,7 @@ func checkError(err error) {
 func Execute(query string, args ...any) error {
 	conn, connErr := getConnection()
 	if connErr == nil {
+		defer conn.Close()
 		var err error
 		if len(args) > 0 {
 			_, err = conn.Exec(query, args...)
@@ -60,6 +63,7 @@ func Query(query string, args ...any) (*([][]any), error) {
 	if connErr != nil {
 		return nil, connErr
 	}
+	defer conn.Close()
 	var rows *sql.Rows
 	var err error
 	if len(args) > 0 {
